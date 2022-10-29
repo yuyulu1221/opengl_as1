@@ -27,10 +27,12 @@ mat4 model(1.0f);			// M of MVP, model matrix
 vec3 temp = vec3();			// a 3 dimension vector which represents how far did the ladybug should move
 float key_rotate_angle_y = 0;
 float key_rotate_angle_z = 0;
-vec2 pre_pos = vec2();
 vec2 mouse_move_dir = vec2();
+vec3 mouse_rotate_dir = vec3();
 float mouse_move_dist;
 bool mouse_rotating;
+mat4 mouse_rotate_matrix(1.0f);
+mat4 mouse_rotate_state_matrix(1.0f);
 
 GLint um4p;
 GLint um4mv;
@@ -230,7 +232,7 @@ void My_Display()
 	mat4 scale_matrix;
 	mat4 rotation_matrix;
 	vec3 rotate_axis;
-	mat4 anime_rotation_matrix;
+	mat4 anime_rotate_matrix;
 	vec3 anime_rotate_axis;
 
 	/// draw body
@@ -241,9 +243,10 @@ void My_Display()
 	rotation_matrix = rotate(mat4(1.0f), radians(key_rotate_angle_z), rotate_axis);
 	rotate_axis = vec3(0.0, 1.0, 0.0);
 	rotation_matrix *= rotate(mat4(1.0f), radians(key_rotate_angle_y), rotate_axis);
+	rotation_matrix *= mouse_rotate_state_matrix;
 	anime_rotate_axis = vec3(-1.0, 0.0, 0.0);
-	anime_rotation_matrix = rotate(mat4(1.0f), radians(45 * anime_timer_cnt / ANIME_TIME), anime_rotate_axis);
-	mat4 chest =  translation_matrix * rotation_matrix * anime_rotation_matrix;
+	anime_rotate_matrix = rotate(mat4(1.0f), radians(45 * anime_timer_cnt / ANIME_TIME), anime_rotate_axis);
+	mat4 chest =  translation_matrix * rotation_matrix * anime_rotate_matrix;
 	model = chest * scale_matrix;
 	// Transfer value of (view*model) to both shader's inner variable 'um4mv'; 
 	glUniformMatrix4fv(um4mv, 1, GL_FALSE, value_ptr(view * model));
@@ -277,8 +280,8 @@ void My_Display()
 	translation_matrix = translate(mat4(1.0f), vec3(0, -0.6, 2.7));
 	scale_matrix = scale(mat4(1.0f), vec3(3, 3, 3));
 	anime_rotate_axis = vec3(-1.0, 0.0, 0.0);
-	anime_rotation_matrix = rotate(mat4(1.0f), radians(190 * anime_timer_cnt / ANIME_TIME), anime_rotate_axis);
-	mat4 left_shoulder_joint = chest * translation_matrix * anime_rotation_matrix;
+	anime_rotate_matrix = rotate(mat4(1.0f), radians(190 * anime_timer_cnt / ANIME_TIME), anime_rotate_axis);
+	mat4 left_shoulder_joint = chest * translation_matrix * anime_rotate_matrix;
 	model = chest * translation_matrix * scale_matrix;
 	glUniformMatrix4fv(um4mv, 1, GL_FALSE, value_ptr(view * model));
 	glUniformMatrix4fv(um4p, 1, GL_FALSE, value_ptr(projection));
@@ -287,8 +290,8 @@ void My_Display()
 	translation_matrix = translate(mat4(1.0f), vec3(0, -0.6, -2.7));
 	scale_matrix = scale(mat4(1.0f), vec3(3, 3, 3));
 	anime_rotate_axis = vec3(1.0, 0.0, 0.0);
-	anime_rotation_matrix = rotate(mat4(1.0f), radians(190 * anime_timer_cnt / ANIME_TIME), anime_rotate_axis);
-	mat4 right_shoulder_joint = chest * translation_matrix * anime_rotation_matrix;
+	anime_rotate_matrix = rotate(mat4(1.0f), radians(190 * anime_timer_cnt / ANIME_TIME), anime_rotate_axis);
+	mat4 right_shoulder_joint = chest * translation_matrix * anime_rotate_matrix;
 	model = chest * translation_matrix * scale_matrix;
 	glUniformMatrix4fv(um4mv, 1, GL_FALSE, value_ptr(view * model));
 	glUniformMatrix4fv(um4p, 1, GL_FALSE, value_ptr(projection));
@@ -322,8 +325,8 @@ void My_Display()
 	rotate_axis = vec3(0.0, 0.0, 1.0);
 	rotation_matrix = rotate(mat4(1.0f), radians(90.0f), rotate_axis);
 	anime_rotate_axis = vec3(1.0, 0.0, 0.0);
-	anime_rotation_matrix = rotate(mat4(1.0f), radians(10 * anime_timer_cnt / ANIME_TIME), anime_rotate_axis);
-	mat4 left_elbow = left_arm1 * translation_matrix * anime_rotation_matrix;
+	anime_rotate_matrix = rotate(mat4(1.0f), radians(10 * anime_timer_cnt / ANIME_TIME), anime_rotate_axis);
+	mat4 left_elbow = left_arm1 * translation_matrix * anime_rotate_matrix;
 	model = left_elbow * rotation_matrix * scale_matrix;
 	glUniformMatrix4fv(um4mv, 1, GL_FALSE, value_ptr(view* model));
 	glUniformMatrix4fv(um4p, 1, GL_FALSE, value_ptr(projection));
@@ -334,8 +337,8 @@ void My_Display()
 	rotate_axis = vec3(0.0, 0.0, -1.0);
 	rotation_matrix = rotate(mat4(1.0f), radians(90.0f), rotate_axis);
 	anime_rotate_axis = vec3(-1.0, 0.0, 0.0);
-	anime_rotation_matrix = rotate(mat4(1.0f), radians(10 * anime_timer_cnt / ANIME_TIME), anime_rotate_axis);
-	mat4 right_elbow = right_arm1 * translation_matrix * anime_rotation_matrix;
+	anime_rotate_matrix = rotate(mat4(1.0f), radians(10 * anime_timer_cnt / ANIME_TIME), anime_rotate_axis);
+	mat4 right_elbow = right_arm1 * translation_matrix * anime_rotate_matrix;
 	model = right_elbow * rotation_matrix * scale_matrix;
 	glUniformMatrix4fv(um4mv, 1, GL_FALSE, value_ptr(view* model));
 	glUniformMatrix4fv(um4p, 1, GL_FALSE, value_ptr(projection));
@@ -382,8 +385,8 @@ void My_Display()
 	translation_matrix = translate(mat4(1.0f), vec3(0, -2, 0.7));
 	scale_matrix = scale(mat4(1.0f), vec3(0.7, 0.7, 0.7));
 	anime_rotate_axis = vec3(1.0, 0.0, 0.0);
-	anime_rotation_matrix = rotate(mat4(1.0f), radians(10 * anime_timer_cnt / ANIME_TIME), anime_rotate_axis);
-	mat4 left_hip = belly * translation_matrix * anime_rotation_matrix;
+	anime_rotate_matrix = rotate(mat4(1.0f), radians(10 * anime_timer_cnt / ANIME_TIME), anime_rotate_axis);
+	mat4 left_hip = belly * translation_matrix * anime_rotate_matrix;
 	model = left_hip * scale_matrix;
 	glUniformMatrix4fv(um4mv, 1, GL_FALSE, value_ptr(view* model));
 	glUniformMatrix4fv(um4p, 1, GL_FALSE, value_ptr(projection));
@@ -393,10 +396,10 @@ void My_Display()
 	scale_matrix = scale(mat4(1.0f), vec3(0.7, 0.7, 0.7));
 	anime_rotate_axis = vec3(1.0, 0.0, 0.0);
 	if (anime_timer_cnt*3/2 <= ANIME_TIME)
-		anime_rotation_matrix = rotate(mat4(1.0f), radians(75 * anime_timer_cnt / ANIME_TIME*3/2), anime_rotate_axis);
+		anime_rotate_matrix = rotate(mat4(1.0f), radians(75 * anime_timer_cnt / ANIME_TIME*3/2), anime_rotate_axis);
 	else
-		anime_rotation_matrix = rotate(mat4(1.0f), radians(75.0f), anime_rotate_axis);
-	mat4 right_hip = belly * translation_matrix * anime_rotation_matrix;
+		anime_rotate_matrix = rotate(mat4(1.0f), radians(75.0f), anime_rotate_axis);
+	mat4 right_hip = belly * translation_matrix * anime_rotate_matrix;
 	model = right_hip * scale_matrix;
 	glUniformMatrix4fv(um4mv, 1, GL_FALSE, value_ptr(view* model));
 	glUniformMatrix4fv(um4p, 1, GL_FALSE, value_ptr(projection));
@@ -434,10 +437,10 @@ void My_Display()
 	scale_matrix = scale(mat4(1.0f), vec3(0.5, 0.5, 0.5));
 	anime_rotate_axis = vec3(-1.0, 0.0, 0.0);
 	if (anime_timer_cnt * 2 <= ANIME_TIME)
-		anime_rotation_matrix = rotate(mat4(1.0f), radians(90 * anime_timer_cnt / ANIME_TIME*2), anime_rotate_axis);
+		anime_rotate_matrix = rotate(mat4(1.0f), radians(90 * anime_timer_cnt / ANIME_TIME*2), anime_rotate_axis);
 	else 
-		anime_rotation_matrix = rotate(mat4(1.0f), radians(90.0f), anime_rotate_axis);
-	mat4 right_knee = right_thigh * translation_matrix * anime_rotation_matrix;
+		anime_rotate_matrix = rotate(mat4(1.0f), radians(90.0f), anime_rotate_axis);
+	mat4 right_knee = right_thigh * translation_matrix * anime_rotate_matrix;
 	model = right_knee * scale_matrix;
 	glUniformMatrix4fv(um4mv, 1, GL_FALSE, value_ptr(view* model));
 	glUniformMatrix4fv(um4p, 1, GL_FALSE, value_ptr(projection));
@@ -560,10 +563,14 @@ void My_SpecialKeys(int key, int x, int y)
 		break;
 	case GLUT_KEY_LEFT:
 		key_rotate_angle_y -= 10;
+		if (key_rotate_angle_y <= -360.0)
+			key_rotate_angle_y += 360.0;
 		printf("Left arrow is pressed at (%d, %d)\n", x, y);
 		break;
 	case GLUT_KEY_RIGHT:
 		key_rotate_angle_y += 10;
+		if (key_rotate_angle_y >= 360.0)
+			key_rotate_angle_y -= 360.0;
 		printf("Right arrow is pressed at (%d, %d)\n", x, y);
 		break;
 	default:
@@ -609,6 +616,7 @@ void My_Menu(int id)
 
 void My_Mouse(int button, int state, int x, int y)
 {
+	static vec2 pre_pos = vec2(0.0, 0.0);
 	if (button == GLUT_LEFT_BUTTON)
 	{
 		if (state == GLUT_DOWN)
@@ -619,8 +627,12 @@ void My_Mouse(int button, int state, int x, int y)
 		}
 		else if (state == GLUT_UP)
 		{
-			mouse_move_dir = vec2(x, y) - pre_pos;
-			mouse_move_dist = sqrt(pow(x - pre_pos.x, 2) + pow(y - pre_pos.y, 2))/10;
+			mouse_move_dir = vec2(x - pre_pos.x, pre_pos.y - y);
+			mouse_move_dist = sqrt(pow(x - pre_pos.x, 2) + pow(y - pre_pos.y, 2));
+			mouse_rotate_dir = cross(vec3(0.0, mouse_move_dir.y, mouse_move_dir.x), vec3(1.0, 0.0, 0.0));
+			mouse_rotate_dir = normalize(mouse_rotate_dir);
+			mouse_rotate_matrix = rotate(mat4(1.0f), radians(180 * mouse_move_dist / 600), mouse_rotate_dir);
+			mouse_rotate_state_matrix *= mouse_rotate_matrix;
 			printf("Mouse %d is released at (%d, %d)\n", button, x, y);
 		}
 	}
