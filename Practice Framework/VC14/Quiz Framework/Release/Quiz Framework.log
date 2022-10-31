@@ -1,1 +1,13 @@
-﻿  Quiz Framework.vcxproj -> C:\Users\user\OneDrive\Document\NTHU\master\OpenGL\AS\AS1\111034578_AS1\Practice Framework\VC14\Quiz Framework\Release\Quiz Framework.exe
+﻿  main.cpp
+C:\Users\user\OneDrive\Document\NTHU\master\OpenGL\AS\AS1\111034578_AS1\Practice Framework\Source\main.cpp(72,13): warning C4996: 'fopen': This function or variable may be unsafe. Consider using fopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+C:\Users\user\OneDrive\Document\NTHU\master\OpenGL\AS\AS1\111034578_AS1\Practice Framework\Source\main.cpp(118,20): warning C4018: '<': signed/unsigned mismatch
+C:\Users\user\OneDrive\Document\NTHU\master\OpenGL\AS\AS1\111034578_AS1\Practice Framework\Source\main.cpp(120,21): warning C4018: '<': signed/unsigned mismatch
+C:\Users\user\OneDrive\Document\NTHU\master\OpenGL\AS\AS1\111034578_AS1\Practice Framework\Source\main.cpp(624,55): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+C:\Users\user\OneDrive\Document\NTHU\master\OpenGL\AS\AS1\111034578_AS1\Practice Framework\Source\main.cpp(625,64): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+C:\Users\user\OneDrive\Document\NTHU\master\OpenGL\AS\AS1\111034578_AS1\Practice Framework\Source\main.cpp(746,26): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+  Generating code
+  1 of 1656 functions (<0.1%) were compiled, the rest were copied from previous compilation.
+    0 functions were new in current compilation
+    11 functions had inline decision re-evaluated but remain unchanged
+  Finished generating code
+  Quiz Framework.vcxproj -> C:\Users\user\OneDrive\Document\NTHU\master\OpenGL\AS\AS1\111034578_AS1\Practice Framework\VC14\Quiz Framework\Release\Quiz Framework.exe

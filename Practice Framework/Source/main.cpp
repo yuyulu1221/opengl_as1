@@ -5,7 +5,16 @@
 #define MENU_TIMER_STOP 2
 #define MENU_EXIT 3
 #define MENU_ANIME_SUPER 4
-#define MENU_ANIME_STOP 5
+#define MENU_ANIME_NORMAL 5
+#define MENU_ANIME_EXERCISE 6
+
+#define NORMAL 0
+#define SUPER 1
+#define EXERCISE 2
+
+#define SLUT 128
+
+#define PI 3.1415926535897932384626433832795
 
 #define ANIME_TIME 51
 
@@ -15,8 +24,10 @@ float anime_timer_cnt = 0;
 bool timer_enabled = true;
 bool anime_timer_enabled = false;
 unsigned int timer_speed = 16;
-unsigned int anime_timer_speed = 16;
-
+unsigned int anime_timer_speed = 1;
+int anime_now = 0;
+float anime_exer_arm = 0;
+float anime_exer_leg = 0;
 
 using namespace glm;
 using namespace std;
@@ -154,7 +165,7 @@ void My_LoadModels(Shape &part_shape, string part)
 
 	cout << "Load " << part_shape.vertexCount << " vertices" << endl;
 	
-	texture_data tdata = loadImg("Texture-01.jpg");
+	texture_data tdata = loadImg("iron1.jpg");
 
 	glGenTextures(1, &part_shape.m_texture);
 	glBindTexture(GL_TEXTURE_2D, part_shape.m_texture);
@@ -234,18 +245,30 @@ void My_Display()
 	vec3 rotate_axis;
 	mat4 anime_rotate_matrix;
 	vec3 anime_rotate_axis;
-
+	cout << anime_timer_cnt << "\n";
 	/// draw body
 	glBindVertexArray(sphere_shape.vao);
-	translation_matrix = translate(mat4(1.0f), vec3(2.0, 3.0-1.8*anime_timer_cnt/ANIME_TIME, 0.0-3.7*anime_timer_cnt/ANIME_TIME) + temp);
+	if (anime_now == SUPER) 
+		translation_matrix = translate(mat4(1.0f), vec3(2.0, 3.0-1.8*anime_timer_cnt/ANIME_TIME, 0.0-3.7*anime_timer_cnt/ANIME_TIME) + temp);
+	if (anime_now == EXERCISE)
+		if (anime_timer_cnt >= 288 && anime_timer_cnt < 416) {
+			translation_matrix = translate(mat4(1.0f), vec3(2.0, 3.0 - sin((anime_timer_cnt - (SLUT / 4)) / SLUT * PI)*0.75, 0.0) + temp);
+		}else 
+			translation_matrix = translate(mat4(1.0f), vec3(2.0, 3.0, 0.0) + temp);
+	else 
+		translation_matrix = translate(mat4(1.0f), vec3(2.0, 3.0, 0.0)+ temp);
 	scale_matrix = scale(mat4(1.0f), vec3(1.5, 1.5, 3.6));
 	rotate_axis = vec3(0.0, 0.0, 1.0);
 	rotation_matrix = rotate(mat4(1.0f), radians(key_rotate_angle_z), rotate_axis);
 	rotate_axis = vec3(0.0, 1.0, 0.0);
 	rotation_matrix *= rotate(mat4(1.0f), radians(key_rotate_angle_y), rotate_axis);
 	rotation_matrix *= mouse_rotate_state_matrix;
-	anime_rotate_axis = vec3(-1.0, 0.0, 0.0);
-	anime_rotate_matrix = rotate(mat4(1.0f), radians(45 * anime_timer_cnt / ANIME_TIME), anime_rotate_axis);
+	if (anime_now == SUPER) {
+		anime_rotate_axis = vec3(-1.0, 0.0, 0.0);
+		anime_rotate_matrix = rotate(mat4(1.0f), radians(45 * anime_timer_cnt / ANIME_TIME), anime_rotate_axis);
+	}
+	else
+		anime_rotate_matrix = mat4(1.0f);
 	mat4 chest =  translation_matrix * rotation_matrix * anime_rotate_matrix;
 	model = chest * scale_matrix;
 	// Transfer value of (view*model) to both shader's inner variable 'um4mv'; 
@@ -264,7 +287,7 @@ void My_Display()
 	model = belly * scale_matrix;
 	glUniformMatrix4fv(um4mv, 1, GL_FALSE, value_ptr(view * model));
 	glUniformMatrix4fv(um4p, 1, GL_FALSE, value_ptr(projection));
-	glDrawArrays(GL_TRIANGLES, 0, sphere_shape.vertexCount);
+	glDrawArrays(GL_TRIANGLES, 0, cylinder_shape.vertexCount);
 
 	/// draw head
 	glBindVertexArray(sphere_shape.vao);
@@ -279,8 +302,16 @@ void My_Display()
 	/// draw shoulder
 	translation_matrix = translate(mat4(1.0f), vec3(0, -0.6, 2.7));
 	scale_matrix = scale(mat4(1.0f), vec3(3, 3, 3));
-	anime_rotate_axis = vec3(-1.0, 0.0, 0.0);
-	anime_rotate_matrix = rotate(mat4(1.0f), radians(190 * anime_timer_cnt / ANIME_TIME), anime_rotate_axis);
+	if (anime_now == SUPER) {
+		anime_rotate_axis = vec3(-1.0, 0.0, 0.0);
+		anime_rotate_matrix = rotate(mat4(1.0f), radians(190 * anime_timer_cnt / ANIME_TIME), anime_rotate_axis);
+	}
+	else if (anime_now == EXERCISE) {
+		anime_rotate_axis = vec3(0.0, 0.0, -1.0);
+		anime_rotate_matrix = rotate(mat4(1.0f), radians(anime_exer_arm), anime_rotate_axis);
+	}
+	else
+		anime_rotate_matrix = mat4(1.0f);
 	mat4 left_shoulder_joint = chest * translation_matrix * anime_rotate_matrix;
 	model = chest * translation_matrix * scale_matrix;
 	glUniformMatrix4fv(um4mv, 1, GL_FALSE, value_ptr(view * model));
@@ -289,8 +320,16 @@ void My_Display()
 
 	translation_matrix = translate(mat4(1.0f), vec3(0, -0.6, -2.7));
 	scale_matrix = scale(mat4(1.0f), vec3(3, 3, 3));
-	anime_rotate_axis = vec3(1.0, 0.0, 0.0);
-	anime_rotate_matrix = rotate(mat4(1.0f), radians(190 * anime_timer_cnt / ANIME_TIME), anime_rotate_axis);
+	if (anime_now == SUPER) {
+		anime_rotate_axis = vec3(1.0, 0.0, 0.0);
+		anime_rotate_matrix = rotate(mat4(1.0f), radians(190 * anime_timer_cnt / ANIME_TIME), anime_rotate_axis);
+	}
+	else if (anime_now == EXERCISE) {
+		anime_rotate_axis = vec3(0.0, 0.0, -1.0);
+		anime_rotate_matrix = rotate(mat4(1.0f), radians(anime_exer_arm), anime_rotate_axis);
+	}
+	else
+		anime_rotate_matrix = mat4(1.0);
 	mat4 right_shoulder_joint = chest * translation_matrix * anime_rotate_matrix;
 	model = chest * translation_matrix * scale_matrix;
 	glUniformMatrix4fv(um4mv, 1, GL_FALSE, value_ptr(view * model));
@@ -324,8 +363,12 @@ void My_Display()
 	scale_matrix = scale(mat4(1.0f), vec3(1.3, 0.39, 1.3));
 	rotate_axis = vec3(0.0, 0.0, 1.0);
 	rotation_matrix = rotate(mat4(1.0f), radians(90.0f), rotate_axis);
-	anime_rotate_axis = vec3(1.0, 0.0, 0.0);
-	anime_rotate_matrix = rotate(mat4(1.0f), radians(10 * anime_timer_cnt / ANIME_TIME), anime_rotate_axis);
+	if (anime_now == SUPER) {
+		anime_rotate_axis = vec3(1.0, 0.0, 0.0);
+		anime_rotate_matrix = rotate(mat4(1.0f), radians(10 * anime_timer_cnt / ANIME_TIME), anime_rotate_axis);
+	}
+	else
+		anime_rotate_matrix = mat4(1.0f);
 	mat4 left_elbow = left_arm1 * translation_matrix * anime_rotate_matrix;
 	model = left_elbow * rotation_matrix * scale_matrix;
 	glUniformMatrix4fv(um4mv, 1, GL_FALSE, value_ptr(view* model));
@@ -336,8 +379,12 @@ void My_Display()
 	scale_matrix = scale(mat4(1.0f), vec3(1.3, 0.39, 1.3));
 	rotate_axis = vec3(0.0, 0.0, -1.0);
 	rotation_matrix = rotate(mat4(1.0f), radians(90.0f), rotate_axis);
-	anime_rotate_axis = vec3(-1.0, 0.0, 0.0);
-	anime_rotate_matrix = rotate(mat4(1.0f), radians(10 * anime_timer_cnt / ANIME_TIME), anime_rotate_axis);
+	if (anime_now == SUPER) {
+		anime_rotate_axis = vec3(-1.0, 0.0, 0.0);
+		anime_rotate_matrix = rotate(mat4(1.0f), radians(10 * anime_timer_cnt / ANIME_TIME), anime_rotate_axis);
+	}
+	else
+		anime_rotate_matrix = mat4(1.0f);
 	mat4 right_elbow = right_arm1 * translation_matrix * anime_rotate_matrix;
 	model = right_elbow * rotation_matrix * scale_matrix;
 	glUniformMatrix4fv(um4mv, 1, GL_FALSE, value_ptr(view* model));
@@ -384,8 +431,18 @@ void My_Display()
 	glBindVertexArray(sphere_shape.vao);
 	translation_matrix = translate(mat4(1.0f), vec3(0, -2, 0.7));
 	scale_matrix = scale(mat4(1.0f), vec3(0.7, 0.7, 0.7));
-	anime_rotate_axis = vec3(1.0, 0.0, 0.0);
-	anime_rotate_matrix = rotate(mat4(1.0f), radians(10 * anime_timer_cnt / ANIME_TIME), anime_rotate_axis);
+	if (anime_now == SUPER) {
+		anime_rotate_axis = vec3(1.0, 0.0, 0.0);
+		anime_rotate_matrix = rotate(mat4(1.0f), radians(10 * anime_timer_cnt / ANIME_TIME), anime_rotate_axis);
+	}
+	else if (anime_now == EXERCISE) {
+		if (anime_timer_cnt >= 288 && anime_timer_cnt < 416) {
+			anime_rotate_axis = vec3(0.0, 0.0, -1.0);
+			anime_rotate_matrix = rotate(mat4(1.0f), radians(anime_exer_leg), anime_rotate_axis);
+		}
+	}
+	else
+		anime_rotate_matrix = mat4(1.0f);
 	mat4 left_hip = belly * translation_matrix * anime_rotate_matrix;
 	model = left_hip * scale_matrix;
 	glUniformMatrix4fv(um4mv, 1, GL_FALSE, value_ptr(view* model));
@@ -394,11 +451,20 @@ void My_Display()
 
 	translation_matrix = translate(mat4(1.0f), vec3(0, -2, -0.7));
 	scale_matrix = scale(mat4(1.0f), vec3(0.7, 0.7, 0.7));
-	anime_rotate_axis = vec3(1.0, 0.0, 0.0);
-	if (anime_timer_cnt*3/2 <= ANIME_TIME)
-		anime_rotate_matrix = rotate(mat4(1.0f), radians(75 * anime_timer_cnt / ANIME_TIME*3/2), anime_rotate_axis);
-	else
-		anime_rotate_matrix = rotate(mat4(1.0f), radians(75.0f), anime_rotate_axis);
+	if (anime_now == SUPER) {
+		anime_rotate_axis = vec3(1.0, 0.0, 0.0);
+		if (anime_timer_cnt * 3 / 2 <= ANIME_TIME)
+			anime_rotate_matrix = rotate(mat4(1.0f), radians(75 * anime_timer_cnt / ANIME_TIME * 3 / 2), anime_rotate_axis);
+		else
+			anime_rotate_matrix = rotate(mat4(1.0f), radians(75.0f), anime_rotate_axis);
+	}
+	else if (anime_now == EXERCISE) {
+		if (anime_timer_cnt >= 288 && anime_timer_cnt < 416) {
+			anime_rotate_axis = vec3(0.0, 0.0, -1.0);
+			anime_rotate_matrix = rotate(mat4(1.0f), radians(anime_exer_leg), anime_rotate_axis);
+		}
+	}
+	else anime_rotate_matrix = mat4(1.0);
 	mat4 right_hip = belly * translation_matrix * anime_rotate_matrix;
 	model = right_hip * scale_matrix;
 	glUniformMatrix4fv(um4mv, 1, GL_FALSE, value_ptr(view* model));
@@ -427,7 +493,14 @@ void My_Display()
 	glBindVertexArray(sphere_shape.vao);
 	translation_matrix = translate(mat4(1.0f), vec3(0, -1, 0));
 	scale_matrix = scale(mat4(1.0f), vec3(0.5, 0.5, 0.5));
-	mat4 left_knee = left_thigh * translation_matrix;
+	if (anime_now == EXERCISE) {
+		if (anime_timer_cnt >= 288 && anime_timer_cnt < 416) {
+			anime_rotate_axis = vec3(0.0, 0.0, 1.0);
+			anime_rotate_matrix = rotate(mat4(1.0f), radians(anime_exer_leg*2), anime_rotate_axis);
+		}
+	}
+	else anime_rotate_matrix = mat4(1.0);
+	mat4 left_knee = left_thigh * translation_matrix * anime_rotate_matrix;
 	model = left_knee * scale_matrix;
 	glUniformMatrix4fv(um4mv, 1, GL_FALSE, value_ptr(view* model));
 	glUniformMatrix4fv(um4p, 1, GL_FALSE, value_ptr(projection));
@@ -435,11 +508,21 @@ void My_Display()
 
 	translation_matrix = translate(mat4(1.0f), vec3(0, -1, 0));
 	scale_matrix = scale(mat4(1.0f), vec3(0.5, 0.5, 0.5));
-	anime_rotate_axis = vec3(-1.0, 0.0, 0.0);
-	if (anime_timer_cnt * 2 <= ANIME_TIME)
-		anime_rotate_matrix = rotate(mat4(1.0f), radians(90 * anime_timer_cnt / ANIME_TIME*2), anime_rotate_axis);
-	else 
-		anime_rotate_matrix = rotate(mat4(1.0f), radians(90.0f), anime_rotate_axis);
+	if (anime_now == SUPER) {
+		anime_rotate_axis = vec3(-1.0, 0.0, 0.0);
+		if (anime_timer_cnt * 2 <= ANIME_TIME)
+			anime_rotate_matrix = rotate(mat4(1.0f), radians(90 * anime_timer_cnt / ANIME_TIME * 2), anime_rotate_axis);
+		else
+			anime_rotate_matrix = rotate(mat4(1.0f), radians(90.0f), anime_rotate_axis);
+	}
+	else if (anime_now == EXERCISE) {
+		if (anime_timer_cnt >= 288 && anime_timer_cnt < 416) {
+			anime_rotate_axis = vec3(0.0, 0.0, 1.0);
+			anime_rotate_matrix = rotate(mat4(1.0f), radians(anime_exer_leg*2), anime_rotate_axis);
+		}
+	}
+	else
+		anime_rotate_matrix = mat4(1.0);
 	mat4 right_knee = right_thigh * translation_matrix * anime_rotate_matrix;
 	model = right_knee * scale_matrix;
 	glUniformMatrix4fv(um4mv, 1, GL_FALSE, value_ptr(view* model));
@@ -468,7 +551,14 @@ void My_Display()
 	glBindVertexArray(cylinder_shape.vao);
 	translation_matrix = translate(mat4(1.0f), vec3(-0.2, -1, 0));
 	scale_matrix = scale(mat4(1.0f), vec3(1, 0.1, 0.4));
-	mat4 left_foot = left_calf * translation_matrix;
+	if (anime_now == EXERCISE) {
+		if (anime_timer_cnt >= 288 && anime_timer_cnt < 416) {
+			anime_rotate_axis = vec3(0.0, 0.0, -1.0);
+			anime_rotate_matrix = rotate(mat4(1.0f), radians(anime_exer_leg), anime_rotate_axis);
+		}
+	}
+	else anime_rotate_matrix = mat4(1.0);
+	mat4 left_foot = left_calf * translation_matrix * anime_rotate_matrix;
 	model = left_foot * scale_matrix;
 	glUniformMatrix4fv(um4mv, 1, GL_FALSE, value_ptr(view* model));
 	glUniformMatrix4fv(um4p, 1, GL_FALSE, value_ptr(projection));
@@ -476,7 +566,14 @@ void My_Display()
 
 	translation_matrix = translate(mat4(1.0f), vec3(-0.2, -1, 0));
 	scale_matrix = scale(mat4(1.0f), vec3(1, 0.1, 0.4));
-	mat4 right_foot = right_calf * translation_matrix;
+	if (anime_now == EXERCISE) {
+		if (anime_timer_cnt >= 288 && anime_timer_cnt < 416) {
+			anime_rotate_axis = vec3(0.0, 0.0, -1.0);
+			anime_rotate_matrix = rotate(mat4(1.0f), radians(anime_exer_leg), anime_rotate_axis);
+		}
+	}
+	else anime_rotate_matrix = mat4(1.0);
+	mat4 right_foot = right_calf * translation_matrix * anime_rotate_matrix;
 	model = right_foot * scale_matrix;
 	glUniformMatrix4fv(um4mv, 1, GL_FALSE, value_ptr(view* model));
 	glUniformMatrix4fv(um4p, 1, GL_FALSE, value_ptr(projection));
@@ -514,14 +611,19 @@ void My_Timer(int val)
 	}
 }
 
-void Anime_Timer(int val) {
+void Anime_timer(int val) {
 	anime_timer_cnt += 1.0f;
 	glutPostRedisplay();
 	if (anime_timer_enabled) {
-		glutTimerFunc(anime_timer_speed, Anime_Timer, val);
+		glutTimerFunc(anime_timer_speed, Anime_timer, val);
 	}
-	if (anime_timer_cnt == ANIME_TIME) {
+	if (anime_now == SUPER && anime_timer_cnt >= ANIME_TIME) {
 		anime_timer_enabled = false;
+	}
+	if (anime_now == EXERCISE) {
+		anime_exer_arm = sin(anime_timer_cnt/(SLUT/2) * PI) * 60;
+		anime_exer_leg = (sin((anime_timer_cnt-(SLUT/4))/SLUT * PI)) * 45;
+		if (anime_timer_cnt > 512) anime_timer_cnt -= 512;
 	}
 }
 
@@ -598,20 +700,33 @@ void My_Menu(int id)
 		break;
 	case MENU_ANIME_SUPER:
 		// do something
-		if (!anime_timer_enabled)
+		if (!anime_timer_enabled || anime_now == EXERCISE)
 		{
 			anime_timer_cnt = 0;
 			anime_timer_enabled = true;
-			glutTimerFunc(anime_timer_speed, Anime_Timer, 0);
+			anime_now = SUPER;
+			glutTimerFunc(anime_timer_speed, Anime_timer, 0);
 		}
 		break;
-	case MENU_ANIME_STOP:
+	case MENU_ANIME_EXERCISE:
+		if (!anime_timer_enabled || anime_now == SUPER)
+		{
+			anime_timer_cnt = 0;
+			anime_timer_enabled = true;
+			anime_now = EXERCISE;
+			glutTimerFunc(anime_timer_speed, Anime_timer, 0);
+		}
+		break;
+	case MENU_ANIME_NORMAL:
 		// do something
 		anime_timer_cnt = 0;
+		anime_timer_enabled = false;
+		anime_now = NORMAL;
 		break;
 	default:
 		break;
 	}
+	
 }
 
 void My_Mouse(int button, int state, int x, int y)
@@ -629,9 +744,13 @@ void My_Mouse(int button, int state, int x, int y)
 		{
 			mouse_move_dir = vec2(x - pre_pos.x, pre_pos.y - y);
 			mouse_move_dist = sqrt(pow(x - pre_pos.x, 2) + pow(y - pre_pos.y, 2));
-			mouse_rotate_dir = cross(vec3(0.0, mouse_move_dir.y, mouse_move_dir.x), vec3(1.0, 0.0, 0.0));
-			mouse_rotate_dir = normalize(mouse_rotate_dir);
-			mouse_rotate_matrix = rotate(mat4(1.0f), radians(180 * mouse_move_dist / 600), mouse_rotate_dir);
+			if (mouse_move_dir == vec2(0.0, 0.0)) 
+				mouse_rotate_matrix = mat4(1.0f);
+			else {
+				mouse_rotate_dir = cross(vec3(0.0, mouse_move_dir.y, mouse_move_dir.x), vec3(1.0, 0.0, 0.0));
+				mouse_rotate_dir = normalize(mouse_rotate_dir);
+				mouse_rotate_matrix = rotate(mat4(1.0f), radians(180 * mouse_move_dist / 600), mouse_rotate_dir);
+			}
 			mouse_rotate_state_matrix *= mouse_rotate_matrix;
 			printf("Mouse %d is released at (%d, %d)\n", button, x, y);
 		}
@@ -657,7 +776,7 @@ int main(int argc, char *argv[])
 	glutInitDisplayMode(GLUT_3_2_CORE_PROFILE | GLUT_RGBA | GLUT_DOUBLE | GLUT_DEPTH);
 #endif
 	glutInitWindowPosition(100, 100);
-	glutInitWindowSize(600, 600);
+	glutInitWindowSize(900, 600);
 	glutCreateWindow("Practice"); // You cannot use OpenGL functions before this line;
 								  // The OpenGL context must be created first by glutCreateWindow()!
 #ifdef _MSC_VER
@@ -679,9 +798,10 @@ int main(int argc, char *argv[])
 	glutAddMenuEntry("Start", MENU_TIMER_START);
 	glutAddMenuEntry("Stop", MENU_TIMER_STOP);
 
-	glutSetMenu(menu_anime);						// Tell GLUT to design the menu which id==menu_new now
-	glutAddMenuEntry("Super!", MENU_ANIME_SUPER);		// Add submenu "Hello" in "New"(a menu which index is equal to menu_new)
-	glutAddMenuEntry("Normal", MENU_ANIME_STOP);		// Add submenu "Hello" in "New"(a menu which index is equal to menu_new)
+	glutSetMenu(menu_anime);
+	glutAddMenuEntry("Normal", MENU_ANIME_NORMAL);	
+	glutAddMenuEntry("Exercise", MENU_ANIME_EXERCISE);
+	glutAddMenuEntry("Super!!!", MENU_ANIME_SUPER);
 
 	glutSetMenu(menu_main);
 	glutAttachMenu(GLUT_RIGHT_BUTTON);
