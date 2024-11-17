@@ -1,5 +1,5 @@
 # opengl_as1
-![image](https://github.com/user-attachments/assets/94791489-e396-4b49-90aa-75c576c0dbd7)
+[![image](https://github.com/user-attachments/assets/94791489-e396-4b49-90aa-75c576c0dbd7)](https://github.com/yuyulu1221/opengl_as1/blob/f54c5366b04b6cbf0ddaa9c66e587ef65afb8d7f/structure.png)
 
 
 ## Controls
