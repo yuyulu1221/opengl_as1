@@ -1,4 +1,6 @@
 # opengl_as1
+![image](https://github.com/user-attachments/assets/94791489-e396-4b49-90aa-75c576c0dbd7)
+
 
 ## Controls
 - W/A/S/D: Move the robot forward, backward, left, and right
